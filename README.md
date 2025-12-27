@@ -1,8 +1,11 @@
 # Algorithm-Competition-Guide | 算法竞赛进阶指南
 
-[![Standard](https://img.shields.io/badge/Language-C++11-blue.svg)](https://en.cppreference.com/w/cpp/11)
-[![Progress](https://img.shields.io/badge/Progress-5%20%2F%2063-green.svg)](#章节进度)
-[![Author](https://img.shields.io/badge/Author-YourName-orange.svg)](https://github.com/你的用户名)
+![Standard1](https://img.shields.io/badge/Language-golang-blue.svg)
+![Standard2](https://img.shields.io/badge/Language-Javascript-blue.svg)
+![Progress](https://img.shields.io/badge/Progress-5%20%2F%2063-green.svg)
+![Author](https://img.shields.io/badge/Author-Hoidric-orange.svg)
+
+This repository serves as a repository for study notes, example solutions, and accompanying practice code for Li Yudong's book “Advanced Guide to Algorithm Competitions.” It aims to solidify algorithmic foundations and build a comprehensive knowledge system through systematic problem-solving practice.
 
 本仓库用于记录李煜东著《算法竞赛进阶指南》的学习笔记、例题题解以及配套练习代码。旨在通过系统性的刷题，打牢算法基础，构建完整的知识体系。
 
