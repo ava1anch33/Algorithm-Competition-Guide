@@ -31,7 +31,7 @@ This repository serves as a repository for study notes, example solutions, and a
 
 ### Chapter 1：0x00 Basic Algorithms
 
-* [/] 0x01 Bitwise Operations
+> * [/] 0x01 Bitwise Operations
 
 ---
 
