@@ -38,21 +38,78 @@ $$
 > **Key Observation:** > 1. $k = \lfloor \log_2 b \rfloor + 1$
 > 2. Each term $a^{2^i}$ can be computed by squaring the previous term: $a^{2^i} = (a^{2^{i-1}})^2$.
 
----
+## 0x0102 Binary state compression
+
+suppose we have a boolean array with length m, we can use a binary Integer to store it. This method is easy to calculate, save time and space. we can define a class to abstract it.
+
+### Shortest Hamilton Path
+
+#### 🚩 Problem Description
+
+Given a weighted undirected graph with $n$ nodes ($n \le 20$), find the shortest path that starts at node $0$, ends at node $n-1$, and visits every node **exactly once**.
+
+#### 📐 core method: DP
+
+if we use brute-force, the complex will be n!, when n is 20, the machine will crash, it absently not gonna solve.
+use **Dynamic Program**，we can reduce the complex to $O(n^2 2^n)$，about $4 \times 10^8$ times calculations.
+
+##### 1. define state
+
+we use a 2-D array `f[state][j]`：
+
+* **`state`**: an Binary Integer, represent for **Set that all Node have been accessed**（if $k$-th is $1$，then $k$ has been accessed）。
+* **`j`**: current**destination**。
+* **`f[state][j]`**: the shortest distance in current state and destination j。
+
+##### 2. transfer state
+
+to access state $(state, j)$，last point must has $k$，and $k$ belong to $state$ not equal $j$。
+$$f[state][j] = \min_{k \in \{state \setminus j\}} \{ f[state \setminus j][k] + weight[k][j] \}$$
+
+* **bitwise operation `state \ j`**: `state ^ (1 << j)`
 
 ### 💻 Implementation
 
-The algorithm iteratively checks the LSB (Least Significant Bit) using `b & 1` and shifts `b` rightward.
+#### [JavaScript - Optimized with TypedArray]
 
-#### [c++]
+In Javascript, $2^{20} \times 20$ data points will let V8 engine to crash, so that we need to use Int32Array to flatten 2D array memory leak and enhance CPU cache hit.
 
-```cpp
-int power(int a, int b, int p) {
-    int = 1 % p;
-    for (; b; b >>= 1) {
-        if (b & 1) ans = (long long) ans * a % p;
-        a = (long long) a * a % p;
+```javascript
+/**
+ * shortest Hamilton distance
+ * @param {number} n - number of point
+ * @param {number[][]} rawWeight - 2-D weight adjacent array
+ * @returns {number}
+ */
+function solveHamilton(n, rawWeight) {
+    const INF = 0x3f3f3f3f;
+    const limit = 1 << n;
+    
+    // 1. flatten weight array
+    const weight = new Int32Array(n * n);
+    for(let i = 0; i < n; i++) 
+        for(let j = 0; j < n; j++) weight[i * n + j] = rawWeight[i][j];
+
+    // 2. use 1-D Int32Array instead of f[limit][n]
+    const f = new Int32Array(limit * n).fill(INF);
+    f[1 * n + 0] = 0; // first point
+
+    // 3. state transfer
+    for (let i = 1; i < limit; i++) {
+        for (let j = 0; j < n; j++) {
+            if ((i >> j) & 1) { // if i has j
+                const pre = i ^ (1 << j); // get the state that before j
+                if (pre === 0) continue; // if no point before j, continue.
+                
+                const curIdx = i * n + j;
+                for (let k = 0; k < n; k++) {
+                    if ((pre >> k) & 1) { // find last possible k
+                        const cost = f[pre * n + k] + weight[k * n + j];
+                        if (cost < f[curIdx]) f[curIdx] = cost;
+                    }
+                }
+            }
+        }
     }
-    return ans;
+    return f[(limit - 1) * n + (n - 1)];
 }
-```
