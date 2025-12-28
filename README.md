@@ -21,7 +21,7 @@ This repository serves as a repository for study notes, example solutions, and a
 
 ---
 
-## 📊 章节进度
+## 📊 Chapter progress
 
 > 标注说明：
 >
@@ -29,9 +29,9 @@ This repository serves as a repository for study notes, example solutions, and a
 > * [/] 进行中
 > * [x] 已完成 (含例题与习题)
 
-### 第一部分：0x00 基本算法
+### Chapter 1：0x00 Basic Algorithms
 
-* [/] 0x01 位运算
+* [/] 0x01 Bitwise Operations
 
 ---
 
