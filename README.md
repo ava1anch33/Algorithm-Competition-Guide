@@ -23,15 +23,9 @@ This repository serves as a repository for study notes, example solutions, and a
 
 ## 📊 Chapter progress
 
-> 标注说明：
->
-> * [ ] 待完成
-> * [/] 进行中
-> * [x] 已完成 (含例题与习题)
-
 ### Chapter 1：0x00 Basic Algorithms
 
-> * [/] 0x01 Bitwise Operations
+> * [] ⏳ 0x01 Bitwise Operations
 
 ---
 
