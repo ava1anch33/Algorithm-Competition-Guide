@@ -7,7 +7,7 @@ import (
 
 const (
 	MaxN = 20
-	INF  = 0x3f3f3f3f // 约 10^9，作为无穷大
+	INF  = 0x3f3f3f3f
 )
 
 // ---------------------------------------------------------
@@ -16,6 +16,17 @@ const (
 
 // Define State as uint64，can handle up to 64 bit state compress
 type State uint64
+
+// NewStateFromArray
+func (s State) NewStateFromArray(bools []bool) State {
+	var ss State = 0
+	for i, v := range bools {
+		if v {
+			s.SetTrue(i)
+		}
+	}
+	return ss
+}
 
 func (s State) GetKth(k int) int {
 	return int((s >> k) & 1)
@@ -37,6 +48,22 @@ func (s State) CountOnes() int {
 	return bits.OnesCount64(uint64(s))
 }
 
+func (s State) test() {
+	fmt.Println("=== Part 2: State Compression ===")
+	initialData := []bool{true, false, true}
+	myState := s.NewStateFromArray(initialData)
+	fmt.Printf("Initial State: %b (Decimal: %d)\n", myState, myState)
+	myState.SetTrue(3)
+	fmt.Printf("After setting bit 3: %b\n", myState)
+	myState.Toggle(0)
+	fmt.Printf("After toggling bit 0: %b\n", myState)
+
+	bit2 := myState.GetKth(2)
+	ones := myState.CountOnes()
+	fmt.Printf("Value at bit 2: %d\n", bit2)
+	fmt.Printf("Total bits set to 1: %d\n", ones)
+}
+
 // ---------------------------------------------------------
 // 2. (a^b) % p
 // ---------------------------------------------------------
@@ -53,26 +80,12 @@ func Power(a, b, p int64) int64 {
 	return ans
 }
 
-// NewStateFromArray
-func NewStateFromArray(bools []bool) State {
-	var s State = 0
-	for i, v := range bools {
-		if v {
-			s.SetTrue(i)
-		}
-	}
-	return s
-}
-
 // ---------------------------------------------------------
 // shorten Hamilton distance
 // ---------------------------------------------------------
-func hamilton(n int, weight [][]int) int {
-	// 1. 初始化 DP 表
-	// f[state][j] 表示：经过的点集合为 state，且当前停在 j 点的最短距离
-	// 状态总数：(1 << n)，每个状态有 n 个结尾点
-	// 为了内存安全，这里使用一维切片模拟二维数组，或者直接开大数组
-	// 这里演示标准二维逻辑
+type Hamilton struct{}
+
+func (h Hamilton) hamilton(n int, weight [][]int) int {
 	limit := 1 << n
 	f := make([][]int, limit)
 	for i := range f {
@@ -82,32 +95,17 @@ func hamilton(n int, weight [][]int) int {
 		}
 	}
 
-	// 2. 起点初始化
-	// 状态 1 (二进制 ...001) 代表只经过了 0 号点
-	// 当前停在 0 号点，距离为 0
 	f[1][0] = 0
 
-	// 3. 状态转移
-	// i 代表当前的状态 (mask)
 	for i := 1; i < limit; i++ {
-		// j 代表当前停在哪个点
 		for j := 0; j < n; j++ {
-			// 如果 i 的第 j 位是 1 (说明 j 在集合 i 中)
 			if (i>>j)&1 == 1 {
-				
-				// preState: 除去 j 之前的状态 (i XOR 2^j)
-				// 比如 i=111(7), j=1(中间位), preState=101(5)
 				preState := i ^ (1 << j)
-				
-				// 如果 preState 为 0，说明 i 只有 j 这一位是 1 (即起点情况)
-				// 我们在循环外已经初始化 f[1][0]=0，这里直接跳过空状态
 				if preState == 0 {
 					continue
 				}
 
-				// k 代表上一步停在哪
 				for k := 0; k < n; k++ {
-					// 只有当 preState 中包含 k 时，才能从 k 走到 j
 					if (preState>>k)&1 == 1 {
 						cost := f[preState][k] + weight[k][j]
 						if cost < f[i][j] {
@@ -118,36 +116,10 @@ func hamilton(n int, weight [][]int) int {
 			}
 		}
 	}
-
-	// 4. 返回结果
-	// 状态：(1<<n)-1 代表所有位都是 1 (所有点都走过)
-	// 终点：n-1
 	return f[limit-1][n-1]
 }
 
-func main() {
-	fmt.Println("=== Part 1: Fast Power Algorithm ===")
-	// 计算 3^5 % 100
-	res := Power(3, 5, 100)
-	fmt.Printf("3^5 %% 100 = %d\n\n", res)
-
-	fmt.Println("=== Part 2: State Compression ===")
-
-	initialData := []bool{true, false, true}
-	myState := NewStateFromArray(initialData)
-	fmt.Printf("Initial State: %b (Decimal: %d)\n", myState, myState)
-
-	myState.SetTrue(3)
-	fmt.Printf("After setting bit 3: %b\n", myState)
-
-	myState.Toggle(0)
-	fmt.Printf("After toggling bit 0: %b\n", myState)
-
-	bit2 := myState.GetKth(2)
-	ones := myState.CountOnes()
-	fmt.Printf("Value at bit 2: %d\n", bit2)
-	fmt.Printf("Total bits set to 1: %d\n", ones)
-
+func (h Hamilton) test() {
 	// test data: simple triangle graph
 	// 0 -> 1: 10
 	// 1 -> 2: 10
@@ -159,6 +131,73 @@ func main() {
 		{10, 0, 10},
 		{100, 10, 0},
 	}
-	
-	fmt.Println(hamilton(n, weights)) // should be 20
+	fmt.Println("=== Part 3: Hamilton shortest distance ===")
+	fmt.Println(h.hamilton(n, weights)) // should be 20
+}
+
+// ---------------------------------------------------------
+// wake up difficult greedy
+// ---------------------------------------------------------
+type Door struct {
+	Op string
+	Val int
+}
+
+type SleepyDragonModule struct{}
+
+// calculate specific bit through all bitwise
+func (s SleepyDragonModule) check(bit int, now int, doors []Door) int {
+	for _, door := range doors {
+		x := (door.Val >> bit) & 1;
+		switch door.Op {
+			case "AND": now &= x; break;
+			case "OR": now |= x; break;
+			default: now ^= x;break;
+		}
+	}
+	return now;
+}
+
+func (s SleepyDragonModule) getAttack(n int, m int, doors []Door) int {
+	val := 0;
+	ans := 0;
+	for bit := 29; bit >= 0; bit-- {
+		res0 := s.check(bit, 0, doors)
+		res1 := s.check(bit, 1, doors)
+		if val+(1<<bit) <= m && res1 > res0 {
+			val += (1 << bit)
+			ans |= (res1 << bit)
+		} else {
+			ans |= (res0 << bit)
+		}
+	}
+	return ans
+}
+
+func (s SleepyDragonModule) Test() {
+	fmt.Println("--- 🧪 Testing Sleepy Dragon (Go Greedy) ---")
+	doors := []Door{
+		{"AND", 5}, // 0101
+		{"OR", 6},  // 0110
+		{"XOR", 7}, // 0111
+	}
+	n := 3
+	m := 10
+	result := s.getAttack(n, m, doors)
+	fmt.Printf("Max Attack: %d ✅\n\n", result)
+}
+
+func main() {
+	fmt.Println("=== Part 1: Fast Power Algorithm ===")
+	res := Power(3, 5, 100)
+	fmt.Printf("3^5 %% 100 = %d\n\n", res)
+
+	var state State
+	state.test()
+
+	hal := Hamilton{}
+	hal.test()
+
+	sdk := SleepyDragonModule{}
+	sdk.Test()
 }

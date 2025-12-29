@@ -48,7 +48,7 @@ suppose we have a boolean array with length m, we can use a binary Integer to st
 
 Given a weighted undirected graph with $n$ nodes ($n \le 20$), find the shortest path that starts at node $0$, ends at node $n-1$, and visits every node **exactly once**.
 
-#### 📐 core method: DP
+#### 📐 core method: DP with bitwise
 
 if we use brute-force, the complex will be n!, when n is 20, the machine will crash, it absently not gonna solve.
 use **Dynamic Program**，we can reduce the complex to $O(n^2 2^n)$，about $4 \times 10^8$ times calculations.
@@ -68,48 +68,25 @@ $$f[state][j] = \min_{k \in \{state \setminus j\}} \{ f[state \setminus j][k] + 
 
 * **bitwise operation `state \ j`**: `state ^ (1 << j)`
 
-### 💻 Implementation
+### Wake Up Difficult Greedy
 
-#### [JavaScript - Optimized with TypedArray]
+#### Problem Description
 
-In Javascript, $2^{20} \times 20$ data points will let V8 engine to crash, so that we need to use Int32Array to flatten 2D array memory leak and enhance CPU cache hit.
+An Boss defend matrix has build by n defend door, each door's attribute contain one operation $op_i$ and one parameter $t_i$, operation must be one of OR, XOR, AND, parameter is positive integer. the player attack will be x, after one gate will go to $x op_i t_i$. the final damage $x_0$ will be the value x through all gate. The Initial attack only can be a integer in range [0, m]. now we want to know the suitable initial attack which make the biggest attack.
 
-```javascript
-/**
- * shortest Hamilton distance
- * @param {number} n - number of point
- * @param {number[][]} rawWeight - 2-D weight adjacent array
- * @returns {number}
- */
-function solveHamilton(n, rawWeight) {
-    const INF = 0x3f3f3f3f;
-    const limit = 1 << n;
-    
-    // 1. flatten weight array
-    const weight = new Int32Array(n * n);
-    for(let i = 0; i < n; i++) 
-        for(let j = 0; j < n; j++) weight[i * n + j] = rawWeight[i][j];
+#### core method Greedy with bitwise
 
-    // 2. use 1-D Int32Array instead of f[limit][n]
-    const f = new Int32Array(limit * n).fill(INF);
-    f[1 * n + 0] = 0; // first point
+The primary characteristic of bitwise operations is that no carry occurs in binary. Therefore, each bit operates independently. We can systematically evaluate each bit from high to low, deciding whether to set it to 0 or 1. (Greedy approach: Since we seek the maximum value, 1000 is naturally more valuable than 0111.) The condition for setting a bit to 1 is that the sum of the already-set higher-order bits plus the current bit shifted left by k does not exceed the required value m.
 
-    // 3. state transfer
-    for (let i = 1; i < limit; i++) {
-        for (let j = 0; j < n; j++) {
-            if ((i >> j) & 1) { // if i has j
-                const pre = i ^ (1 << j); // get the state that before j
-                if (pre === 0) continue; // if no point before j, continue.
-                
-                const curIdx = i * n + j;
-                for (let k = 0; k < n; k++) {
-                    if ((pre >> k) & 1) { // find last possible k
-                        const cost = f[pre * n + k] + weight[k * n + j];
-                        if (cost < f[curIdx]) f[curIdx] = cost;
-                    }
-                }
-            }
-        }
-    }
-    return f[(limit - 1) * n + (n - 1)];
-}
+## 0x0103 Lowbit Calculation
+
+### What is lowbit(n)?
+
+Lowbit is defined as the value formed by the “least significant bit 1 followed by zeros” in binary representation for a non-negative integer n. For example: if n is 10, $(1010)_2$ the last one and remain 0 is 10, so lowbit(10) is 2.
+
+### What is the formula?
+
+First, invert n. At this point, the kth bit becomes 0, and the following bits become 1. Let n = n + 1. Now, the most significant bit to the k+1st bit are exactly the opposite of the original values. Therefore, n & (~n+1) has only k as 1, with all others being 0. In two's complement representation, ~n = -1 - n, so:
+$$
+lowbit(n) = n \& (~n + 1) = n \& (-n)
+$$
